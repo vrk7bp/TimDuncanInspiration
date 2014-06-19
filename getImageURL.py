@@ -1,6 +1,41 @@
 import urllib2
 import json
 from random import randint
+import xml.parsers.expat
+
+########### Function to get rid of XML content coming from Quote API
+def unescape(s):
+    want_unicode = False
+    if isinstance(s, unicode):
+        s = s.encode("utf-8")
+        want_unicode = True
+
+    # the rest of this assumes that `s` is UTF-8
+    list = []
+
+    # create and initialize a parser object
+    p = xml.parsers.expat.ParserCreate("utf-8")
+    p.buffer_text = True
+    p.returns_unicode = want_unicode
+    p.CharacterDataHandler = list.append
+
+    # parse the data wrapped in a dummy element
+    # (needed so the "document" is well-formed)
+    p.Parse("<e>", 0)
+    p.Parse(s, 0)
+    p.Parse("</e>", 1)
+
+    # join the extracted strings and return
+    es = ""
+    if want_unicode:
+        es = u""
+    return es.join(list)
+
+############## End XML Function ########################3
+
+
+
+############# GOOGLE CUSTOM SEARCH PART: FOR IMAGE RETRIEVAL ######################
 
 #List that will hold all of the links to the pictures
 listOfLinks = []
@@ -48,25 +83,21 @@ for element in ninthTen["items"]:
 for element in tenthTen["items"]:
 	listOfLinks.append(element["link"])
 
-
-# print listOfLinks
-# print
-
-# print len(listOfLinks)
-# print
-
-# print listOfLinks[0]
-# print
-# print listOfLinks[99]
-# print
-
 randomInt = randint(0,99)
 imageOfTheDay = listOfLinks[randomInt]
-# print randomInt
-# print
-# print listOfLinks[randomInt]
-# print
-# print "done"
 
+############# END IMAGE RETRIEVAL ######################
 
+############# I HEART QUOTES: FOR QUOTE RETRIEVAL ######################
 
+quote = urllib2.urlopen("http://www.iheartquotes.com/api/v1/random").read()
+quote.replace("&quot;", "\"")
+linedQuote = quote.split('\n')
+linedQuote.pop()
+del linedQuote[-1]
+edittedQuote = ""
+for element in linedQuote:
+	edittedQuote = edittedQuote + element + "\n"
+finalQuote = unescape(edittedQuote)
+
+############# END QUOTE API ######################
