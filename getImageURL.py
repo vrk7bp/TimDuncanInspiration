@@ -4,6 +4,12 @@ from random import randint
 import xml.parsers.expat
 import sendgrid
 
+GoogleAPIKey = "zzz"
+GoogleAPIcx = "zzz"
+SendGridUserName = "zzz"
+SendGridPassword = "zzz"
+FromEmail = "zzz"
+
 ########### Function to get rid of XML content coming from Quote API
 def unescape(s):
     want_unicode = False
@@ -42,16 +48,16 @@ def unescape(s):
 listOfLinks = []
 
 #Since Google only lets me search in groups of 10, I must query 10 times to get 100 images
-firstTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image").read())
-secondTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image&start=11").read())
-thirdTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image&start=21").read())
-fourthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image&start=31").read())
-fifthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image&start=41").read())
-sixthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image&start=51").read())
-seventhTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image&start=61").read())
-eighthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image&start=71").read())
-ninthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image&start=81").read())
-tenthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=zzz&cx=yyy&searchType=image&start=91").read())
+firstTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image").read())
+secondTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image&start=11").read())
+thirdTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image&start=21").read())
+fourthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image&start=31").read())
+fifthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image&start=41").read())
+sixthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image&start=51").read())
+seventhTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image&start=61").read())
+eighthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image&start=71").read())
+ninthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image&start=81").read())
+tenthTen = json.loads(urllib2.urlopen("https://www.googleapis.com/customsearch/v1?q=tim+duncan&key=" + GoogleAPIKey + "&cx=" + GoogleAPIcx + "&searchType=image&start=91").read())
 
 #Put all of the image URLs into one list
 for element in firstTen["items"]:
@@ -105,10 +111,21 @@ finalQuote = unescape(edittedQuote)
 
 ############# SEND GRID API: FOR SENDING THE EMAILS ######################
 
-sg = sendgrid.SendGridClient('xxx', 'yyy')
-message = sendgrid.Mail()
-message.add_bcc(['zzz <zzz@zzz>', 'zzz <zzz@zzz>'])
-message.set_subject('Your Tim Duncan Inspiration for the Day')
-message.set_html('<html><body><img src=\"' + imageOfTheDay + '\" alt=\"Tim Duncan doing cool stuff\"><p></p><p></p><bold>' + finalQuote + '</bold></body></html>')
-message.set_from('Tim Duncan <tim@duncan.com>')
-status, msg = sg.send(message)
+#htmlForEmail = '<html><body><img src=\"' + imageOfTheDay + '\" alt=\"Tim Duncan doing cool stuff\"><p></p><p></p><strong>' + finalQuote + '</strong></body></html>'
+#imageOfTheDay = "http://www.thecatsbreeds.net/gallery/deaf-cat/deaf_cat.jpg"
+
+htmlForEmail = '<html><body><img src=\"' + imageOfTheDay + '\" alt=\"Tim Duncan doing cool stuff\"><p></p><p></p><h3>' + finalQuote + '<p></p><br><br></h3></body></html>'
+
+listOfPeopleToSendTo = []
+with open ("EmailList.txt", "r") as myfile:
+    listOfPeopleToSendTo = myfile.readlines()
+
+sg = sendgrid.SendGridClient(SendGridUserName, SendGridPassword)
+
+for element in listOfPeopleToSendTo:
+	element.replace('\n', '')
+	message = sendgrid.Mail(to=element, subject='Your Tim Duncan Inspiration for the Day', html=htmlForEmail, from_email=FromEmail)
+	status, msg = sg.send(message)
+	#print status
+
+############## END SEND GRID API ######################
